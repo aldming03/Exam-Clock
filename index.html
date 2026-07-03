@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2026학년도 1학기 2차고사</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="start-screen" class="screen start-screen" aria-labelledby="app-title">
+        <div class="start-panel">
+          <p class="school-label">시험 일정 시간표</p>
+          <h1 id="app-title">2026학년도 1학기 2차고사</h1>
+
+          <div class="choice-group" aria-labelledby="date-label">
+            <h2 id="date-label">날짜</h2>
+            <div class="button-grid" id="date-options"></div>
+          </div>
+
+          <div class="choice-group" aria-labelledby="grade-label">
+            <h2 id="grade-label">학년</h2>
+            <div class="button-grid two-columns" id="grade-options"></div>
+          </div>
+
+          <label class="test-time-field" for="test-time">
+            <span>테스트 시간</span>
+            <input id="test-time" type="text" inputmode="numeric" autocomplete="off" placeholder="09:40" aria-describedby="test-time-help">
+          </label>
+          <p id="test-time-help" class="field-note">비워 두면 현재 시각을 사용합니다.</p>
+
+          <p id="start-error" class="start-error" role="alert" aria-live="polite"></p>
+          <button id="start-button" class="primary-button" type="button">시작</button>
+        </div>
+      </section>
+
+      <section id="exam-screen" class="screen exam-screen hidden" aria-live="polite">
+        <div class="top-clock" id="current-time">--:--:--</div>
+        <div class="top-selection" id="selection-label"></div>
+        <div id="test-badge" class="test-badge hidden">테스트 모드</div>
+
+        <button id="back-button" class="back-button" type="button">이전 화면으로</button>
+
+        <div class="safe-stage">
+          <section class="status-area" aria-labelledby="status-message">
+            <p id="status-message" class="status-message">--</p>
+            <p id="remaining-time" class="remaining-time">--:--</p>
+          </section>
+
+          <aside class="schedule-panel" aria-labelledby="schedule-title">
+            <h2 id="schedule-title">오늘의 시간표</h2>
+            <ol id="schedule-list" class="schedule-list"></ol>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
