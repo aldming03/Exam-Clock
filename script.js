@@ -154,14 +154,43 @@
       return { valid: true, seconds: null };
     }
 
-    const match = trimmed.match(/^([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/);
-    if (!match) {
-      return { valid: false, seconds: null };
+    let hours;
+    let minutes;
+    let seconds = 0;
+    const separatedMatch = trimmed.match(/^(\d{1,2})[:.](\d{2})(?::(\d{2}))?$/);
+    const compactMatch = trimmed.match(/^(\d{3,4})$/);
+
+    if (separatedMatch) {
+      hours = Number(separatedMatch[1]);
+      minutes = Number(separatedMatch[2]);
+      seconds = separatedMatch[3] === undefined ? 0 : Number(separatedMatch[3]);
+    } else if (compactMatch) {
+      const compact = compactMatch[1];
+      const hourDigits = compact.length === 3 ? 1 : 2;
+      hours = Number(compact.slice(0, hourDigits));
+      minutes = Number(compact.slice(hourDigits));
+    } else {
+      return { valid: false, seconds: null, normalized: "" };
+    }
+
+    if (
+      !Number.isInteger(hours) ||
+      !Number.isInteger(minutes) ||
+      !Number.isInteger(seconds) ||
+      hours < 0 ||
+      hours > 23 ||
+      minutes < 0 ||
+      minutes > 59 ||
+      seconds < 0 ||
+      seconds > 59
+    ) {
+      return { valid: false, seconds: null, normalized: "" };
     }
 
     return {
       valid: true,
-      seconds: timeToSeconds(`${match[1]}:${match[2]}:${match[3] || "00"}`),
+      seconds: hours * 3600 + minutes * 60 + seconds,
+      normalized: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`,
     };
   }
 
@@ -301,11 +330,11 @@
 
     const testResult = parseTestTime(elements.testTime.value);
     if (!testResult.valid) {
-      elements.startError.textContent = "테스트 시간은 09:40 또는 09:40:30 형식으로 입력해 주세요.";
+      elements.startError.textContent = "테스트 시간은 09:40, 9:40, 0940, 940, 09.40 형식으로 입력해 주세요.";
       return;
     }
 
-    state.testInput = elements.testTime.value.trim();
+    state.testInput = testResult.normalized ? testResult.normalized.slice(0, 5) : elements.testTime.value.trim();
     state.testBaseSeconds = testResult.seconds;
     state.testStartedAt = Date.now();
 
