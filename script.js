@@ -104,7 +104,7 @@
     startButton: document.getElementById("start-button"),
     startError: document.getElementById("start-error"),
     backButton: document.getElementById("back-button"),
-    fullscreenButton: document.getElementById("fullscreen-button"),
+    fullscreenButtons: Array.from(document.querySelectorAll("[data-fullscreen-button]")),
     currentTime: document.getElementById("current-time"),
     selectionLabel: document.getElementById("selection-label"),
     testBadge: document.getElementById("test-badge"),
@@ -350,11 +350,10 @@
   }
 
   function updateFullscreenButton() {
-    if (!elements.fullscreenButton) {
-      return;
-    }
-
-    elements.fullscreenButton.textContent = isFullscreenActive() ? "전체화면 해제" : "전체화면";
+    const label = isFullscreenActive() ? "전체화면 해제" : "전체화면";
+    elements.fullscreenButtons.forEach((button) => {
+      button.textContent = label;
+    });
   }
 
   async function toggleFullscreen() {
@@ -434,12 +433,16 @@
     elements.backButton.addEventListener("click", returnToStart);
 
     if (isFullscreenSupported()) {
-      elements.fullscreenButton.addEventListener("click", toggleFullscreen);
+      elements.fullscreenButtons.forEach((button) => {
+        button.addEventListener("click", toggleFullscreen);
+      });
       document.addEventListener("fullscreenchange", updateFullscreenButton);
       updateFullscreenButton();
     } else {
       console.info("이 브라우저는 Fullscreen API를 지원하지 않습니다.");
-      elements.fullscreenButton.hidden = true;
+      elements.fullscreenButtons.forEach((button) => {
+        button.hidden = true;
+      });
     }
   }
 
