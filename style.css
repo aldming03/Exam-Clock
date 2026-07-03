@@ -178,9 +178,10 @@ h1 {
 }
 
 .top-clock,
-.top-selection,
+.top-actions,
 .test-badge,
-.back-button {
+.back-button,
+.fullscreen-button {
   position: absolute;
   z-index: 4;
 }
@@ -193,14 +194,47 @@ h1 {
   font-weight: 800;
 }
 
-.top-selection {
+.top-actions {
   top: var(--safe-top);
   right: var(--safe-side);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
   max-width: min(42vw, 560px);
+}
+
+.top-selection {
+  min-width: 0;
   color: var(--text);
   font-size: clamp(16px, 1.6vw, 24px);
   font-weight: 800;
   text-align: right;
+}
+
+.fullscreen-button {
+  position: static;
+  flex: 0 0 auto;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: rgba(18, 23, 34, 0.9);
+  color: var(--text);
+  font-size: clamp(13px, 1vw, 16px);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.fullscreen-button:hover,
+.fullscreen-button:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.fullscreen-button:disabled {
+  cursor: default;
+  opacity: 0.42;
 }
 
 .test-badge {
@@ -375,7 +409,9 @@ h1 {
     grid-template-columns: 1fr;
   }
 
-  .top-selection {
+  .top-actions {
+    flex-direction: column;
+    align-items: flex-end;
     max-width: 42vw;
   }
 }

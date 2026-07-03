@@ -104,6 +104,7 @@
     startButton: document.getElementById("start-button"),
     startError: document.getElementById("start-error"),
     backButton: document.getElementById("back-button"),
+    fullscreenButton: document.getElementById("fullscreen-button"),
     currentTime: document.getElementById("current-time"),
     selectionLabel: document.getElementById("selection-label"),
     testBadge: document.getElementById("test-badge"),
@@ -340,6 +341,41 @@
     }
   }
 
+  function isFullscreenSupported() {
+    return Boolean(document.fullscreenEnabled && document.documentElement.requestFullscreen);
+  }
+
+  function isFullscreenActive() {
+    return Boolean(document.fullscreenElement);
+  }
+
+  function updateFullscreenButton() {
+    if (!elements.fullscreenButton) {
+      return;
+    }
+
+    elements.fullscreenButton.textContent = isFullscreenActive() ? "전체화면 해제" : "전체화면";
+  }
+
+  async function toggleFullscreen() {
+    if (!isFullscreenSupported()) {
+      console.info("이 브라우저는 Fullscreen API를 지원하지 않습니다.");
+      return;
+    }
+
+    try {
+      if (isFullscreenActive()) {
+        await document.exitFullscreen();
+      } else {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (error) {
+      console.info("전체화면 전환에 실패했습니다.", error);
+    } finally {
+      updateFullscreenButton();
+    }
+  }
+
   function renderSchedule(highlightPeriod) {
     const subjects = getSelectedSubjects();
     elements.scheduleList.innerHTML = "";
@@ -396,6 +432,15 @@
     applyUrlTestParameter();
     elements.startButton.addEventListener("click", startExam);
     elements.backButton.addEventListener("click", returnToStart);
+
+    if (isFullscreenSupported()) {
+      elements.fullscreenButton.addEventListener("click", toggleFullscreen);
+      document.addEventListener("fullscreenchange", updateFullscreenButton);
+      updateFullscreenButton();
+    } else {
+      console.info("이 브라우저는 Fullscreen API를 지원하지 않습니다.");
+      elements.fullscreenButton.hidden = true;
+    }
   }
 
   window.__examScheduleApp = {
@@ -408,6 +453,8 @@
     isAutonomous,
     displaySubject,
     parseTestTime,
+    isFullscreenSupported,
+    updateFullscreenButton,
   };
 
   init();
