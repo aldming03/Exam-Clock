@@ -84,32 +84,32 @@ vm.createContext(context);
 vm.runInContext(code, context);
 
 const app = context.window.__examScheduleApp;
-const subjectsExam = app.EXAM_DAYS["2026-07-06"].grades["3"];
-const subjectsAutonomous = app.EXAM_DAYS["2026-07-06"].grades["2"];
-const subjectsFirstPeriodAutonomous = app.EXAM_DAYS["2026-07-07"].grades["3"];
+const subjectsExam = app.EXAM_DAYS["2026-10-12"].grades["3"];
+const subjectsAutonomous = app.EXAM_DAYS["2026-10-12"].grades["1"];
+const subjectsFirstPeriodAutonomous = app.EXAM_DAYS["2026-10-13"].grades["3"];
 
 const cases = [
   ["08:40", subjectsExam, "1교시 준비까지", false, null],
-  ["09:00", subjectsExam, "기술·가정 준비", false, 1],
-  ["09:02", subjectsExam, "기술·가정 준비", false, 1],
-  ["09:05", subjectsExam, "기술·가정", false, 1],
-  ["09:06", subjectsExam, "기술·가정", false, 1],
-  ["09:39", subjectsExam, "기술·가정", false, 1],
-  ["09:40", subjectsExam, "기술·가정", true, 1],
-  ["09:49", subjectsExam, "기술·가정", true, 1],
+  ["09:00", subjectsExam, "국어 준비", false, 1],
+  ["09:02", subjectsExam, "국어 준비", false, 1],
+  ["09:05", subjectsExam, "국어", false, 1],
+  ["09:06", subjectsExam, "국어", false, 1],
+  ["09:39", subjectsExam, "국어", false, 1],
+  ["09:40", subjectsExam, "국어", true, 1],
+  ["09:49", subjectsExam, "국어", true, 1],
   ["09:50", subjectsExam, "다음 시간: 자율학습", false, null],
   ["10:05", subjectsExam, "자율학습 준비", false, 2],
   ["10:06", subjectsExam, "자율학습 준비", false, 2],
   ["10:10", subjectsExam, "자율학습", false, 2],
   ["10:46", subjectsExam, "자율학습", false, 2],
-  ["10:55", subjectsExam, "다음 과목: 사회", false, null],
-  ["11:10", subjectsExam, "사회 준비", false, 3],
-  ["11:12", subjectsExam, "사회 준비", false, 3],
-  ["11:15", subjectsExam, "사회", false, 3],
-  ["11:50", subjectsExam, "사회", true, 3],
+  ["10:55", subjectsExam, "다음 과목: 수학", false, null],
+  ["11:10", subjectsExam, "수학 준비", false, 3],
+  ["11:12", subjectsExam, "수학 준비", false, 3],
+  ["11:15", subjectsExam, "수학", false, 3],
+  ["11:50", subjectsExam, "수학", true, 3],
   ["12:00", subjectsExam, "오늘 시험 종료", false, null],
   ["09:40", subjectsAutonomous, "자율학습", false, 1],
-  ["10:55", subjectsAutonomous, "다음 과목: 한문/생활일본어", false, null],
+  ["10:55", subjectsAutonomous, "다음 과목: 수학", false, null],
   ["09:00", subjectsFirstPeriodAutonomous, "자율학습 준비", false, 1],
   ["09:05", subjectsFirstPeriodAutonomous, "자율학습", false, 1],
 ];
@@ -130,11 +130,11 @@ for (const [time, subjects, message, danger, highlight] of cases) {
 const urlCases = [
   ["?test=08:40", subjectsExam, "1교시 준비까지"],
   ["?test=09:50", subjectsExam, "다음 시간: 자율학습"],
-  ["?test=10:55", subjectsAutonomous, "다음 과목: 한문/생활일본어"],
-  ["?test=09:40", subjectsExam, "기술·가정"],
-  ["?test=0940", subjectsExam, "기술·가정"],
-  ["?test=940", subjectsExam, "기술·가정"],
-  ["?test=09.40", subjectsExam, "기술·가정"],
+  ["?test=10:55", subjectsAutonomous, "다음 과목: 수학"],
+  ["?test=09:40", subjectsExam, "국어"],
+  ["?test=0940", subjectsExam, "국어"],
+  ["?test=940", subjectsExam, "국어"],
+  ["?test=09.40", subjectsExam, "국어"],
 ];
 
 for (const [query, subjects, message] of urlCases) {
