@@ -1,3 +1,18 @@
+/* 학교안심 알림장체 (보통·굵게). fonts 폴더에 함께 두므로 인터넷 없이도 표시된다. */
+@font-face {
+  font-family: "Hakgyoansim Allimjang";
+  src: url("fonts/HakgyoansimAllimjang-R.otf") format("opentype");
+  font-weight: 100 599;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hakgyoansim Allimjang";
+  src: url("fonts/HakgyoansimAllimjang-B.otf") format("opentype");
+  font-weight: 600 1000;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
   --bg: #07090d;
@@ -10,9 +25,12 @@
   --danger: #ff4d5a;
   --border: rgba(255, 255, 255, 0.18);
   --shadow: rgba(0, 0, 0, 0.38);
+  /* 전자칠판에서 가려지는 영역. 모든 내용은 이 여백 안쪽에만 배치한다. */
   --safe-top: 10vh;
   --safe-side: 10vw;
   --safe-bottom: 20vh;
+  /* 진행 화면 위쪽 네 요소(버튼 2개, 현재 시각, 날짜·학년)가 함께 쓰는 글자 크기 */
+  --top-font: clamp(18px, min(1.84vw, 3.22vh), 30px);
 }
 
 * {
@@ -24,20 +42,24 @@ body {
   width: 100%;
   height: 100%;
   margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
-  overflow: hidden;
   background:
     radial-gradient(circle at 50% 42%, rgba(42, 61, 88, 0.42), transparent 42%),
     var(--bg);
   color: var(--text);
-  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  font-family: "Hakgyoansim Allimjang", "Malgun Gothic", sans-serif;
+  /* 보통·굵게 두 파일만 있으므로, 브라우저가 가짜 굵게 처리로 글자를 뭉개지 않게 막는다. */
+  font-synthesis: none;
 }
 
 button,
 input {
   font: inherit;
+  color: inherit;
 }
 
 button {
@@ -46,303 +68,402 @@ button {
 
 .app-shell,
 .screen {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
 }
 
 .screen {
   position: relative;
+  overflow: hidden;
+  padding: var(--safe-top) var(--safe-side) var(--safe-bottom);
 }
 
 .hidden {
   display: none !important;
 }
 
+/* 숫자 칸: script.js의 setDigitText()가 모든 숫자를 같은 폭으로 감싼다. */
+.digit {
+  display: inline-block;
+  text-align: center;
+}
+
+.digit-word {
+  white-space: nowrap;
+}
+
+/* '/'만 기울기가 뚜렷한 맑은 고딕으로 (script.js의 appendWithSlash()) */
+.slash {
+  font-family: "Malgun Gothic", "Segoe UI", sans-serif;
+  font-weight: inherit;
+}
+
+/* 현재 시각의 '시', '분'처럼 숫자 뒤 단위 글자를 조금 작게 */
+.unit {
+  font-size: 0.8em;
+}
+
+.text-button {
+  flex: 0 0 auto;
+  min-height: 2.3em;
+  padding: 0 1em;
+  /* 날짜·학년 버튼과 같은 주황 스타일 */
+  border: 2px solid rgba(255, 176, 102, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 166, 77, 0.12);
+  font-size: clamp(16px, min(1.26vw, 2.3vh), 23px);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.text-button:hover,
+.text-button:focus-visible,
+.text-button:active {
+  border-color: #ff9a3c;
+  background: rgba(255, 140, 40, 0.32);
+  box-shadow: inset 0 0 0 2px #ff9a3c;
+}
+
+/* ---------- 시작 화면 ---------- */
+
 .start-screen {
   display: grid;
   align-items: center;
   justify-items: center;
-  overflow: auto;
-  padding: calc(var(--safe-top) + 64px) var(--safe-side) var(--safe-bottom);
 }
 
-.start-panel {
-  width: min(1280px, 100%);
-  padding: clamp(22px, 3vw, 38px);
+.start-content {
+  width: min(1200px, 100%);
+  padding: clamp(18px, min(2.4vw, 3.6vh), 36px);
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(18, 23, 34, 0.94);
   box-shadow: 0 24px 70px var(--shadow);
 }
 
-.school-label {
-  margin: 0 0 8px;
-  color: var(--accent);
-  font-size: clamp(15px, 1.5vw, 20px);
-  font-weight: 700;
+.start-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(20px, 3.8vh, 42px);
 }
 
 h1 {
-  margin: 0 0 26px;
-  font-size: clamp(32px, 4.5vw, 64px);
-  line-height: 1.08;
+  margin: 0;
+  font-size: clamp(30px, min(4.14vw, 6.9vh), 64px);
+  line-height: 1.1;
   letter-spacing: 0;
 }
 
-.choice-group {
-  margin-top: 20px;
+.field + .field {
+  margin-top: clamp(12px, 2.2vh, 22px);
 }
 
-.choice-group h2 {
-  margin: 0 0 12px;
-  color: var(--muted);
-  font-size: clamp(17px, 1.6vw, 22px);
-  font-weight: 700;
+/* 날짜 줄과 학년 줄 사이는 조금 더 띄운다. */
+.field + .grade-field {
+  margin-top: clamp(18px, 3.4vh, 36px);
 }
 
-.button-grid {
+.date-grid,
+.grade-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: clamp(8px, 0.8vw, 12px);
 }
 
-.button-grid.two-columns {
+.date-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grade-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .choice-button {
-  min-height: 58px;
-  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: clamp(52px, 8.5vh, 76px);
+  padding: 4px 8px;
+  border: 2px solid rgba(255, 176, 102, 0.32);
   border-radius: 8px;
-  background: var(--panel-strong);
-  color: var(--text);
-  font-size: clamp(16px, 1.5vw, 21px);
-  font-weight: 700;
+  /* 옅은 주황 배경, 선택하면 조금 진한 주황 배경과 진한 주황 테두리 */
+  background: rgba(255, 166, 77, 0.12);
+  font-size: clamp(21px, min(2.05vw, 3.6vh), 31px);
+  font-weight: 400;
+  word-break: keep-all;
 }
 
 .choice-button[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: #ffffff;
-  box-shadow: inset 0 0 0 2px rgba(79, 179, 255, 0.38);
+  border-color: #ff9a3c;
+  background: rgba(255, 140, 40, 0.32);
+  box-shadow: inset 0 0 0 2px #ff9a3c;
 }
 
-.test-time-field {
-  display: grid;
-  grid-template-columns: minmax(96px, max-content) minmax(160px, 260px);
+.today-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #03111d;
+  font-size: 0.72em;
+  font-weight: 900;
+}
+
+.test-time-row {
+  display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 24px;
+  min-height: clamp(40px, 6vh, 52px);
+}
+
+.test-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
   color: var(--muted);
-  font-size: clamp(16px, 1.5vw, 20px);
+  font-size: clamp(18px, min(1.72vw, 2.99vh), 25px);
   font-weight: 700;
 }
 
-.test-time-field input {
-  width: 100%;
-  height: 52px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 16px;
-  background: #080c13;
+.test-toggle:hover,
+.test-toggle:focus-visible {
   color: var(--text);
-  font-size: clamp(18px, 1.8vw, 24px);
 }
 
-.field-note {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 14px;
+.chevron {
+  width: 1.1em;
+  height: 1.1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 접힌 상태에는 오른쪽(>), 펼친 상태에는 아래쪽(∨) 꺽쇠를 보여 준다. */
+.test-toggle .chevron-down,
+.test-toggle[aria-expanded="true"] .chevron-right {
+  display: none;
+}
+
+.test-toggle[aria-expanded="true"] .chevron-down {
+  display: block;
+}
+
+.test-time-row input {
+  width: min(240px, 40%);
+  height: clamp(40px, 6vh, 52px);
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #080c13;
+  font-size: clamp(20px, min(1.84vw, 3.22vh), 28px);
 }
 
 .start-error {
-  min-height: 24px;
-  margin: 18px 0 12px;
+  min-height: 1.4em;
+  margin: clamp(8px, 1.6vh, 16px) 0 clamp(6px, 1.2vh, 12px);
   color: #ffb2b8;
+  font-size: clamp(16px, min(1.49vw, 2.53vh), 22px);
   font-weight: 700;
 }
 
 .primary-button {
   width: 100%;
-  min-height: 64px;
+  min-height: clamp(48px, 8vh, 64px);
   border: 0;
   border-radius: 8px;
   background: var(--accent);
   color: #03111d;
-  font-size: clamp(20px, 2vw, 28px);
+  font-size: clamp(23px, min(2.3vw, 4.14vh), 32px);
   font-weight: 900;
 }
 
+/* ---------- 시험 진행 화면 ---------- */
+
 .exam-screen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  row-gap: clamp(12px, 3vh, 36px);
   background:
     linear-gradient(90deg, rgba(7, 9, 13, 0.96), rgba(7, 9, 13, 0.78)),
     var(--bg);
 }
 
-.top-clock,
-.top-actions,
-.test-badge,
-.back-button,
-.screen-fullscreen-button {
-  position: absolute;
-  z-index: 4;
-}
-
-.top-clock {
-  top: var(--safe-top);
-  left: var(--safe-side);
-  color: var(--muted);
-  font-size: clamp(20px, 1.95vw, 32px);
-  font-weight: 800;
-}
-
-.top-actions {
-  top: var(--safe-top);
-  right: var(--safe-side);
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 12px;
-  max-width: min(42vw, 560px);
-}
-
-.top-selection {
+/* 위쪽 2×2 배치: 1행은 이전 화면(왼쪽)·전체 화면(오른쪽), 2행은 현재 시각(왼쪽)·날짜·학년(오른쪽).
+   네 요소 모두 같은 글자 크기, 왼쪽 열은 왼쪽 끝, 오른쪽 열은 오른쪽 끝에 맞춘다. */
+.top-bar {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 24px;
+  row-gap: clamp(8px, 1.6vh, 16px);
   min-width: 0;
-  color: var(--text);
-  font-size: clamp(16px, 1.6vw, 24px);
-  font-weight: 800;
-  text-align: right;
+  font-size: var(--top-font);
 }
 
-.fullscreen-button {
-  flex: 0 0 auto;
-  min-height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 14px;
-  background: rgba(18, 23, 34, 0.9);
-  color: var(--text);
-  font-size: clamp(13px, 1vw, 16px);
-  font-weight: 900;
+.top-bar > * {
+  justify-self: start;
+}
+
+.top-bar > .top-end {
+  justify-self: end;
+}
+
+.top-button {
+  min-width: 8.4em;
+  min-height: 1.9em;
+  padding: 0 0.8em;
+  font-size: 1em;
+}
+
+.top-text {
+  font-weight: 400;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
-.screen-fullscreen-button {
-  top: var(--safe-top);
-  right: var(--safe-side);
+.top-clock {
+  color: #ffc48a;
+  /* '현재 시각'과 시각 사이의 띄어쓰기 세 칸을 그대로 보이게 한다. */
+  white-space: pre;
 }
 
-.fullscreen-button:hover,
-.fullscreen-button:focus-visible {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.fullscreen-button:disabled {
-  cursor: default;
-  opacity: 0.42;
+.top-selection {
+  /* 현재 시각과 같은 옅은 주황. 날짜와 학년 사이 띄어쓰기 세 칸을 그대로 보이게 한다. */
+  color: #ffc48a;
+  white-space: pre;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .test-badge {
-  top: calc(var(--safe-top) + 42px);
-  left: var(--safe-side);
-  padding: 6px 10px;
+  padding: 4px 10px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  color: #dbeafe;
   background: rgba(79, 179, 255, 0.16);
-  font-size: 13px;
+  color: #dbeafe;
+  font-size: clamp(14px, min(1.15vw, 2.07vh), 18px);
   font-weight: 800;
+  white-space: nowrap;
 }
 
-.back-button {
-  top: calc(var(--safe-top) + 78px);
-  left: var(--safe-side);
-  min-height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 16px;
-  background: rgba(18, 23, 34, 0.82);
-  color: var(--text);
-  font-size: clamp(14px, 1.1vw, 17px);
-  font-weight: 800;
-}
-
-.safe-stage {
-  position: absolute;
-  inset: calc(var(--safe-top) + 92px) var(--safe-side) var(--safe-bottom) var(--safe-side);
+.main-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 28vw);
-  gap: clamp(20px, 3vw, 46px);
-  align-items: center;
+  /* 시간표 칸은 내용에 맞는 폭만 쓰고, 나머지 폭은 모두 남은 시간에 준다. */
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(16px, 1.8vw, 32px);
+  /* 남은 시간과 시간표의 바닥을 아래쪽 여백(20%) 경계에 맞춘다. */
+  align-items: end;
+  min-height: 0;
 }
 
-.status-area {
+.stage {
+  display: grid;
+  /* 열 폭을 화면 공간에 고정해야 긴 문구가 열을 넓히지 않고 문구만 줄어든다. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: end center;
+  height: 100%;
   min-width: 0;
-  padding-top: 28px;
+  min-height: 0;
+}
+
+.stage-content {
+  max-width: 100%;
   text-align: center;
 }
 
 .status-message {
-  margin: 0 0 clamp(16px, 2.5vh, 30px);
-  color: var(--text);
-  font-size: clamp(40px, 5.2vw, 96px);
-  font-weight: 900;
+  margin: 0;
+  /* 옅은 파란색. 아래 안내 문구(--muted)보다 진하게 */
+  color: #8ec9ff;
+  font-size: clamp(29px, min(4.97vw, 8.79vh), 99px);
+  font-weight: 400;
   line-height: 1.14;
   letter-spacing: 0;
-  white-space: pre-line;
-  word-break: keep-all;
-  overflow-wrap: normal;
-  text-wrap: balance;
+  /* 항상 한 줄. 넘치면 script.js의 fitWidth()가 문구만 줄인다. */
+  white-space: nowrap;
+}
+
+/* '준비', '다음 과목:' 같은 보조 글자는 15% 작게 */
+.status-small {
+  font-size: 0.85em;
+}
+
+.time-notice {
+  margin: clamp(10px, 2.2vh, 26px) 0 clamp(4px, 1vh, 12px);
+  color: var(--muted);
+  font-size: clamp(17px, min(1.52vw, 2.78vh), 28px);
+  font-weight: 400;
 }
 
 .remaining-time {
   margin: 0;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(88px, 13.4vw, 220px);
+  font-size: clamp(80px, min(15.8vw, 30.4vh), 304px);
   font-weight: 950;
-  line-height: 0.96;
+  /* 이 글꼴은 글자 상자가 1.2em이라, 그보다 작으면 자동 축소 계산에서 빠져 가림 영역을 넘는다. */
+  line-height: 1.2;
   letter-spacing: 0;
+  /* 글자 상자 아래 빈 공간(0.19em)만큼 내려, 숫자의 실제 아래 끝이 아래쪽 여백(20%) 경계에 닿게 한다. */
+  margin-bottom: -0.19em;
 }
 
 .remaining-time.danger {
   color: var(--danger);
 }
 
-.remaining-time.no-time {
-  visibility: hidden;
+/* 남은 시간이 없는 화면(오늘 시험 종료)은 문구만 세로 가운데에 둔다. */
+.stage-content.no-time {
+  align-self: center;
+}
+
+.stage-content.no-time .time-notice,
+.stage-content.no-time .remaining-time {
+  display: none;
 }
 
 .schedule-panel {
-  align-self: center;
   min-width: 0;
-  padding: clamp(18px, 2vw, 28px);
+  padding: clamp(14px, min(1.8vw, 3vh), 28px);
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(18, 23, 34, 0.86);
 }
 
 .schedule-panel h2 {
-  margin: 0 0 16px;
+  margin: 0 0 clamp(8px, 1.6vh, 16px);
+  font-weight: 400;
   color: var(--muted);
-  font-size: clamp(17px, 1.5vw, 22px);
+  font-size: clamp(20px, min(1.85vw, 3.17vh), 29px);
   letter-spacing: 0;
 }
 
 .schedule-list {
   display: grid;
-  gap: 12px;
+  gap: clamp(6px, 1.2vh, 12px);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* 글자 크기 기준을 과목명 크기로 두고, 왼쪽 여백 안에 '▶' 자리를 둔다.
+   그래서 과목명과 시각이 같은 세로선에 맞고, '▶'가 어느 줄로 옮겨가도 폭이 변하지 않는다. */
 .schedule-item {
-  min-height: 74px;
+  position: relative;
+  padding: clamp(8px, 1.4vh, 14px) 14px clamp(8px, 1.4vh, 14px) calc(14px + 1.05em);
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 12px 14px;
+  /* 교시와 과목 사이를 세 칸으로 늘린 만큼 4% 줄여, 시간표 폭(따라서 남은 시간 크기)을 그대로 유지한다. */
+  font-size: clamp(20px, min(2.035vw, 3.55vh), 33.6px);
 }
 
 .schedule-item.current {
@@ -352,72 +473,31 @@ h1 {
 
 .schedule-name {
   display: block;
-  color: var(--text);
-  font-size: clamp(18px, 1.65vw, 26px);
-  font-weight: 900;
-  line-height: 1.18;
+  font-size: 1em;
+  /* 교시와 과목 사이 띄어쓰기 세 칸을 그대로 보이게 한다. */
+  white-space: pre;
+  font-weight: 400;
+  line-height: 1.2;
+  word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+.schedule-marker {
+  position: absolute;
+  left: 14px;
+  /* 가운데 문구와 같은 옅은 파란색 */
+  color: #8ec9ff;
+  visibility: hidden;
+}
+
+.schedule-marker.visible {
+  visibility: visible;
 }
 
 .schedule-time {
   display: block;
-  margin-top: 7px;
+  margin-top: 4px;
   color: var(--muted);
-  font-size: clamp(12px, 1vw, 15px);
-  font-weight: 700;
-}
-
-@media (max-width: 900px) {
-  body {
-    overflow: auto;
-  }
-
-  .screen {
-    min-height: 100vh;
-    height: auto;
-  }
-
-  .start-screen {
-    padding: calc(var(--safe-top) + 64px) var(--safe-side) var(--safe-bottom);
-  }
-
-  .button-grid,
-  .button-grid.two-columns {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .safe-stage {
-    position: relative;
-    inset: auto;
-    width: min(88vw, 720px);
-    min-height: 70vh;
-    margin: 14vh auto 12vh;
-    grid-template-columns: 1fr;
-  }
-
-  .back-button {
-    left: var(--safe-side);
-  }
-
-  .status-message {
-    font-size: clamp(36px, 10vw, 74px);
-  }
-
-  .remaining-time {
-    font-size: clamp(76px, 24vw, 168px);
-  }
-}
-
-@media (max-width: 560px) {
-  .button-grid,
-  .button-grid.two-columns,
-  .test-time-field {
-    grid-template-columns: 1fr;
-  }
-
-  .top-actions {
-    flex-direction: column;
-    align-items: flex-end;
-    max-width: 42vw;
-  }
+  font-size: 0.6em;
+  font-weight: 400;
 }
