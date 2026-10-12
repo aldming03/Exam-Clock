@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>2026학년도 2학기 1차고사</title>
-    <link rel="stylesheet" href="style.css?v=20261009a">
+    <link rel="stylesheet" href="style.css?v=20261012a">
   </head>
   <body>
     <main class="app-shell">
@@ -39,9 +39,10 @@
       </section>
 
       <section id="exam-screen" class="screen exam-screen hidden">
-        <!-- 위쪽 2×2: 왼쪽 열(이전 화면 / 현재 시각), 오른쪽 열(전체 화면 / 날짜·학년) -->
+        <!-- 위쪽 3열: 왼쪽 열(이전 화면 / 현재 시각), 가운데(남은 시간), 오른쪽 열(전체 화면 / 날짜·학년) -->
         <header id="top-bar" class="top-bar">
           <button id="back-button" class="text-button top-button" type="button">이전 화면</button>
+          <p id="remaining-time" class="remaining-time">--:--</p>
           <button id="exam-fullscreen-button" class="text-button top-button top-end" type="button" data-fullscreen-button>전체 화면</button>
           <div class="top-clock top-text" id="current-time">현재 시각   --시 --분</div>
           <div class="top-selection top-text top-end">
@@ -50,23 +51,15 @@
           </div>
         </header>
 
-        <div class="main-area">
-          <div id="stage" class="stage">
-            <div id="stage-content" class="stage-content">
-              <p id="status-message" class="status-message">--</p>
-              <p id="time-notice" class="time-notice">실제 시종과 차이가 날 수 있습니다</p>
-              <p id="remaining-time" class="remaining-time">--:--</p>
-            </div>
-          </div>
+        <p id="status-message" class="status-message">--</p>
+        <p id="time-notice" class="time-notice">실제 시종과 차이가 날 수 있습니다</p>
 
-          <aside id="schedule-panel" class="schedule-panel" aria-labelledby="schedule-title">
-            <h2 id="schedule-title">오늘의 시간표</h2>
-            <ol id="schedule-list" class="schedule-list"></ol>
-          </aside>
-        </div>
+        <section id="schedule-panel" class="schedule-panel" aria-label="오늘의 시간표">
+          <ol id="schedule-list" class="schedule-list"></ol>
+        </section>
       </section>
     </main>
 
-    <script src="script.js?v=20261009a"></script>
+    <script src="script.js?v=20261012a"></script>
   </body>
 </html>

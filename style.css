@@ -281,22 +281,27 @@ h1 {
 
 /* ---------- 시험 진행 화면 ---------- */
 
+/* 위에서부터 위쪽 3열 → 가운데 문구 → 안내 문구 → 시간표.
+   남는 세로 공간은 요소 사이에 고르게 나누고, 시간표 바닥은 아래쪽 여백(20%) 경계에 맞춘다. */
 .exam-screen {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  row-gap: clamp(12px, 3vh, 36px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(12px, 3vh, 36px);
   background:
     linear-gradient(90deg, rgba(7, 9, 13, 0.96), rgba(7, 9, 13, 0.78)),
     var(--bg);
 }
 
-/* 위쪽 2×2 배치: 1행은 이전 화면(왼쪽)·전체 화면(오른쪽), 2행은 현재 시각(왼쪽)·날짜·학년(오른쪽).
+/* 위쪽 3열 배치: 왼쪽 열은 이전 화면·현재 시각, 오른쪽 열은 전체 화면·날짜·학년, 가운데는 남은 시간.
+   좌우 열의 폭을 같게 두어 남은 시간이 화면 정가운데에 오고, 좌우 두 줄은 위쪽 끝에 붙인다.
    네 요소 모두 같은 글자 크기, 왼쪽 열은 왼쪽 끝, 오른쪽 열은 오른쪽 끝에 맞춘다. */
 .top-bar {
   display: grid;
-  grid-template-columns: auto auto;
-  justify-content: space-between;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto auto 1fr;
   align-items: center;
+  flex: 0 0 auto;
   column-gap: 24px;
   row-gap: clamp(8px, 1.6vh, 16px);
   min-width: 0;
@@ -304,10 +309,12 @@ h1 {
 }
 
 .top-bar > * {
+  grid-column: 1;
   justify-self: start;
 }
 
 .top-bar > .top-end {
+  grid-column: 3;
   justify-self: end;
 }
 
@@ -350,34 +357,9 @@ h1 {
   white-space: nowrap;
 }
 
-.main-area {
-  display: grid;
-  /* 시간표 칸은 내용에 맞는 폭만 쓰고, 나머지 폭은 모두 남은 시간에 준다. */
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: minmax(0, 1fr);
-  gap: clamp(16px, 1.8vw, 32px);
-  /* 남은 시간과 시간표의 바닥을 아래쪽 여백(20%) 경계에 맞춘다. */
-  align-items: end;
-  min-height: 0;
-}
-
-.stage {
-  display: grid;
-  /* 열 폭을 화면 공간에 고정해야 긴 문구가 열을 넓히지 않고 문구만 줄어든다. */
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  place-items: end center;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-}
-
-.stage-content {
-  max-width: 100%;
-  text-align: center;
-}
-
 .status-message {
+  flex: 0 0 auto;
+  min-width: 0;
   margin: 0;
   /* 옅은 파란색. 아래 안내 문구(--muted)보다 진하게 */
   color: #8ec9ff;
@@ -385,6 +367,7 @@ h1 {
   font-weight: 400;
   line-height: 1.14;
   letter-spacing: 0;
+  text-align: center;
   /* 항상 한 줄. 넘치면 script.js의 fitWidth()가 문구만 줄인다. */
   white-space: nowrap;
 }
@@ -395,38 +378,45 @@ h1 {
 }
 
 .time-notice {
-  margin: clamp(10px, 2.2vh, 26px) 0 clamp(4px, 1vh, 12px);
+  flex: 0 0 auto;
+  margin: 0;
   color: var(--muted);
   font-size: clamp(17px, min(1.52vw, 2.78vh), 28px);
   font-weight: 400;
+  text-align: center;
 }
 
+/* 위쪽 가운데 칸을 세 줄 전체에 걸쳐 차지한다.
+   크기는 script.js의 fitRemainingTime()이 남는 폭과 높이에 맞춰 정한다. */
 .remaining-time {
+  grid-row: 1 / -1;
+  align-self: start;
   margin: 0;
   font-size: clamp(80px, min(15.8vw, 30.4vh), 304px);
   font-weight: 950;
   /* 이 글꼴은 글자 상자가 1.2em이라, 그보다 작으면 자동 축소 계산에서 빠져 가림 영역을 넘는다. */
   line-height: 1.2;
   letter-spacing: 0;
-  /* 글자 상자 아래 빈 공간(0.19em)만큼 내려, 숫자의 실제 아래 끝이 아래쪽 여백(20%) 경계에 닿게 한다. */
-  margin-bottom: -0.19em;
+  white-space: nowrap;
+}
+
+.top-bar > .remaining-time {
+  grid-column: 2;
+  justify-self: center;
 }
 
 .remaining-time.danger {
   color: var(--danger);
 }
 
-/* 남은 시간이 없는 화면(오늘 시험 종료)은 문구만 세로 가운데에 둔다. */
-.stage-content.no-time {
-  align-self: center;
-}
-
-.stage-content.no-time .time-notice,
-.stage-content.no-time .remaining-time {
+/* 남은 시간이 없는 화면(오늘 시험 종료)은 문구만 위쪽 줄과 시간표 사이 가운데에 둔다. */
+.exam-screen.no-time .time-notice,
+.exam-screen.no-time .remaining-time {
   display: none;
 }
 
 .schedule-panel {
+  flex: 0 0 auto;
   min-width: 0;
   padding: clamp(14px, min(1.8vw, 3vh), 28px);
   border: 1px solid var(--border);
@@ -434,16 +424,11 @@ h1 {
   background: rgba(18, 23, 34, 0.86);
 }
 
-.schedule-panel h2 {
-  margin: 0 0 clamp(8px, 1.6vh, 16px);
-  font-weight: 400;
-  color: var(--muted);
-  font-size: clamp(20px, min(1.85vw, 3.17vh), 29px);
-  letter-spacing: 0;
-}
-
+/* 교시 칸을 가로로 나열하고, 전체 폭을 같은 폭으로 나눈다. */
 .schedule-list {
   display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: clamp(6px, 1.2vh, 12px);
   margin: 0;
   padding: 0;

@@ -112,8 +112,7 @@
     scheduleList: document.getElementById("schedule-list"),
     topBar: document.getElementById("top-bar"),
     schedulePanel: document.getElementById("schedule-panel"),
-    stage: document.getElementById("stage"),
-    stageContent: document.getElementById("stage-content"),
+    timeNotice: document.getElementById("time-notice"),
     statusMessage: document.getElementById("status-message"),
     remainingTime: document.getElementById("remaining-time"),
   };
@@ -566,13 +565,13 @@
     }
 
     if (isExamScreenVisible()) {
-      fitWidth(elements.topBar);
-      // 가운데 문구는 항상 한 줄이므로, 폭을 넘으면 문구만 줄인 뒤 가운데 영역 전체를 맞춘다.
-      elements.stageContent.style.zoom = "";
+      elements.topBar.style.zoom = "";
+      // 가운데 문구는 항상 한 줄, 시간표는 한 줄이므로 폭을 넘으면 그것만 줄인다.
       fitWidth(elements.statusMessage);
+      fitWidth(elements.schedulePanel);
       fitRemainingTime();
-      fitToBox(elements.stageContent, elements.stage.clientWidth, elements.stage.clientHeight);
-      fitToBox(elements.schedulePanel, elements.schedulePanel.offsetWidth, elements.stage.clientHeight);
+      // 좌우 열만으로도 폭을 넘는 아주 좁은 화면에서만 위쪽 줄 전체를 줄인다.
+      fitWidth(elements.topBar);
     }
   }
 
@@ -587,8 +586,8 @@
     }
   }
 
-  // 남은 시간은 가운데 영역의 남는 폭과 높이를 꽉 채우는 크기로 정한다.
-  // 바닥은 CSS로 아래쪽 여백 경계에 고정되어 있으므로, 커질수록 위쪽(가운데 문구 쪽) 빈 공간만 줄어든다.
+  // 남은 시간은 위쪽 좌우 열 사이의 남는 폭과, 다른 요소를 뺀 남는 높이를 꽉 채우는 크기로 정한다.
+  // 좌우 열은 같은 폭(넓은 쪽 기준)으로 잡아 남은 시간이 화면 정가운데에 오게 한다.
   function fitRemainingTime() {
     const time = elements.remainingTime;
     time.style.fontSize = "";
@@ -601,12 +600,26 @@
     const range = document.createRange();
     range.selectNodeContents(time);
     const textWidth = range.getBoundingClientRect().width;
-    // 글자 크기에 비례해 차지하는 높이(글자 상자 1.2em - 아래로 당긴 0.19em)
-    const heightPerFont = (time.offsetHeight + parseFloat(window.getComputedStyle(time).marginBottom)) / fontSize;
-    const otherHeight = elements.stageContent.offsetHeight - heightPerFont * fontSize;
+    const heightPerFont = time.offsetHeight / fontSize;
 
-    const byWidth = elements.stage.clientWidth / (textWidth / fontSize);
-    const byHeight = (elements.stage.clientHeight - otherHeight) / heightPerFont;
+    const box = getContentBox(elements.examScreen);
+    const topStyle = window.getComputedStyle(elements.topBar);
+    const sideWidth = Math.max(
+      ...Array.from(elements.topBar.children)
+        .filter((child) => child !== time)
+        .map((child) => child.getBoundingClientRect().width),
+    );
+    const middleWidth = box.width - 2 * sideWidth - 2 * parseFloat(topStyle.columnGap);
+
+    // 위쪽 줄 아래 요소들(가운데 문구, 안내 문구, 시간표)과 그 사이 간격
+    const below = [elements.statusMessage, elements.timeNotice, elements.schedulePanel]
+      .filter((element) => element.offsetHeight);
+    const gap = parseFloat(window.getComputedStyle(elements.examScreen).rowGap) || 0;
+    const belowHeight = below.reduce((sum, element) => sum + element.getBoundingClientRect().height, 0)
+      + gap * below.length;
+
+    const byWidth = middleWidth / (textWidth / fontSize);
+    const byHeight = (box.height - belowHeight) / heightPerFont;
     const fitted = Math.floor(Math.min(byWidth, byHeight) * 0.98);
     if (fitted > 0) {
       time.style.fontSize = `${fitted}px`;
@@ -739,7 +752,7 @@
     elements.testBadge.classList.toggle("hidden", badgeText === "");
 
     const hasTime = segment.remainingSeconds !== null;
-    elements.stageContent.classList.toggle("no-time", !hasTime);
+    elements.examScreen.classList.toggle("no-time", !hasTime);
     setDigitText(elements.remainingTime, hasTime ? secondsToMinutesSeconds(segment.remainingSeconds) : "");
     elements.remainingTime.classList.toggle("danger", segment.isDanger);
 
