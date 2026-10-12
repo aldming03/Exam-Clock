@@ -29,8 +29,19 @@
   --safe-top: 10vh;
   --safe-side: 10vw;
   --safe-bottom: 20vh;
+  /* 진행 화면의 좌우 열('이전 화면'·'전체 화면')과 시간표가 쓰는 양옆 여백. 나머지는 --safe-side를 따른다. */
+  --top-side: 5vw;
+  /* 진행 화면의 위쪽 여백. 시작 화면은 --safe-top을 따른다. */
+  --exam-top: 5vh;
   /* 진행 화면 위쪽 네 요소(버튼 2개, 현재 시각, 날짜·학년)가 함께 쓰는 글자 크기 */
   --top-font: clamp(18px, min(1.84vw, 3.22vh), 30px);
+  /* 현재 시각·날짜·학년 줄의 크기 단계 비율. 1단계는 숫자의 이 배수, 2단계는 그 제곱 */
+  --top-step: 0.8;
+  /* 남은 시간 양옆 문구에서 '조금 더 큰' 글자(과목명 등)가 '보통'의 몇 배인지 */
+  --side-big: 2;
+  /* 왼쪽 가운데 문구 전체를 안내 문구('보통')보다 몇 배 키울지. 두 줄의 크기 비율(--side-big)은 그대로 유지된다.
+     '자율학습'(조금 더 큰 줄)이 버튼 폭에 딱 맞는 한도가 약 1.21배 */
+  --status-scale: 1.2;
 }
 
 * {
@@ -97,11 +108,6 @@ button {
 .slash {
   font-family: "Malgun Gothic", "Segoe UI", sans-serif;
   font-weight: inherit;
-}
-
-/* 현재 시각의 '시', '분'처럼 숫자 뒤 단위 글자를 조금 작게 */
-.unit {
-  font-size: 0.8em;
 }
 
 .text-button {
@@ -281,9 +287,10 @@ h1 {
 
 /* ---------- 시험 진행 화면 ---------- */
 
-/* 위에서부터 위쪽 3열 → 가운데 문구 → 안내 문구 → 시간표.
-   남는 세로 공간은 요소 사이에 고르게 나누고, 시간표 바닥은 아래쪽 여백(20%) 경계에 맞춘다. */
+/* 위에서부터 3열 영역 → 시간표. 3열 영역이 남는 세로 공간을 모두 차지하고,
+   시간표 바닥은 아래쪽 여백(20%) 경계에 맞춘다. */
 .exam-screen {
+  padding-top: var(--exam-top);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -293,15 +300,20 @@ h1 {
     var(--bg);
 }
 
-/* 위쪽 3열 배치: 왼쪽 열은 이전 화면·현재 시각, 오른쪽 열은 전체 화면·날짜·학년, 가운데는 남은 시간.
-   좌우 열의 폭을 같게 두어 남은 시간이 화면 정가운데에 오고, 좌우 두 줄은 위쪽 끝에 붙인다.
-   네 요소 모두 같은 글자 크기, 왼쪽 열은 왼쪽 끝, 오른쪽 열은 오른쪽 끝에 맞춘다. */
+/* 3열 배치: 왼쪽 열은 이전 화면·현재 시각·가운데 문구, 오른쪽 열은 전체 화면·날짜·학년·안내 문구,
+   가운데는 남은 시간. 좌우 열의 폭을 같게 두어 남은 시간이 화면 정가운데에 온다.
+   버튼(1행)과 현재 시각·날짜·학년(2행)은 위쪽 끝에 붙이고, 두 문구는 1~3행 전체의 세로 가운데
+   (즉 남은 시간의 세로 가운데)에 둔다. 왼쪽 열은 왼쪽 끝, 오른쪽 열은 오른쪽 끝에 맞춘다. */
 .top-bar {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   grid-template-rows: auto auto 1fr;
-  align-items: center;
-  flex: 0 0 auto;
+  align-items: start;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* 좌우 열만 --top-side 여백까지 바깥으로 넓힌다. 남은 시간 크기는 fitCenter()가 --safe-side 기준 폭으로
+     계산하므로 그대로이고, 열 사이 간격만 늘어난다. */
+  margin-inline: calc(var(--top-side) - var(--safe-side));
   column-gap: 24px;
   row-gap: clamp(8px, 1.6vh, 16px);
   min-width: 0;
@@ -318,14 +330,18 @@ h1 {
   justify-self: end;
 }
 
+/* '이전 화면'과 '전체 화면(해제)' 버튼은 문구와 상관없이 같은 폭으로 고정한다.
+   아래 줄 글자(현재 시각, 날짜·학년)가 이 폭에 맞춰지므로, 전체 화면을 켜고 꺼도 크기가 흔들리지 않는다. */
 .top-button {
-  min-width: 8.4em;
+  grid-row: 1;
+  width: 8.4em;
   min-height: 1.9em;
   padding: 0 0.8em;
   font-size: 1em;
 }
 
 .top-text {
+  grid-row: 2;
   font-weight: 400;
   line-height: 1.25;
   white-space: nowrap;
@@ -341,56 +357,57 @@ h1 {
   /* 현재 시각과 같은 옅은 주황. 날짜와 학년 사이 띄어쓰기 세 칸을 그대로 보이게 한다. */
   color: #ffc48a;
   white-space: pre;
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
-.test-badge {
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: rgba(79, 179, 255, 0.16);
-  color: #dbeafe;
-  font-size: clamp(14px, min(1.15vw, 2.07vh), 18px);
-  font-weight: 800;
+/* 크기 단계: 숫자(0단계)가 가장 크고, 1단계(시·분, 요일·학년), 2단계(현재 시각) 순으로 작다.
+   글자 크기 자체는 script.js의 fitTopText()가 버튼 폭에 맞춰 정한다. */
+.level-1 {
+  font-size: calc(var(--top-step) * 1em);
+}
+
+.level-2 {
+  font-size: calc(var(--top-step) * var(--top-step) * 1em);
+}
+
+/* 남은 시간 양옆 문구(왼쪽 가운데 문구, 오른쪽 안내 문구). 각자 열 안에서 가운데 맞춤.
+   '보통' 크기는 script.js의 fitSideText()가 가장 긴 줄이 버튼 폭에 맞도록 양쪽 똑같이 정한다. */
+.side-text {
+  grid-row: 1 / -1;
+  align-self: center;
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+/* 한 줄씩. 폭은 글자만큼이고 열 안에서 가운데에 둔다. */
+.side-line {
+  display: block;
+  width: fit-content;
+  margin-inline: auto;
   white-space: nowrap;
+}
+
+/* '조금 더 큰' 크기(과목명 등)는 '보통'의 이 배수 */
+.side-big {
+  font-size: calc(var(--side-big) * 1em);
 }
 
 .status-message {
-  flex: 0 0 auto;
-  min-width: 0;
-  margin: 0;
-  /* 옅은 파란색. 아래 안내 문구(--muted)보다 진하게 */
+  /* 옅은 파란색. 오른쪽 안내 문구(--muted)보다 진하게 */
   color: #8ec9ff;
-  font-size: clamp(29px, min(4.97vw, 8.79vh), 99px);
-  font-weight: 400;
-  line-height: 1.14;
-  letter-spacing: 0;
-  text-align: center;
-  /* 항상 한 줄. 넘치면 script.js의 fitWidth()가 문구만 줄인다. */
-  white-space: nowrap;
-}
-
-/* '준비', '다음 과목:' 같은 보조 글자는 15% 작게 */
-.status-small {
-  font-size: 0.85em;
 }
 
 .time-notice {
-  flex: 0 0 auto;
-  margin: 0;
   color: var(--muted);
-  font-size: clamp(17px, min(1.52vw, 2.78vh), 28px);
-  font-weight: 400;
-  text-align: center;
 }
 
 /* 위쪽 가운데 칸을 세 줄 전체에 걸쳐 차지한다.
-   크기는 script.js의 fitRemainingTime()이 남는 폭과 높이에 맞춰 정한다. */
+   크기는 script.js의 fitCenter()가 남는 폭과 높이에 맞춰 정한다. */
 .remaining-time {
   grid-row: 1 / -1;
-  align-self: start;
+  align-self: center;
   margin: 0;
   font-size: clamp(80px, min(15.8vw, 30.4vh), 304px);
   font-weight: 950;
@@ -405,50 +422,113 @@ h1 {
   justify-self: center;
 }
 
+/* 테스트 모드(오늘이 아닌 날짜 또는 테스트 시간 입력)는 파란색. 마지막 10분 빨간색이 우선한다. */
+.remaining-time.test {
+  color: var(--accent);
+}
+
 .remaining-time.danger {
   color: var(--danger);
 }
 
-/* 남은 시간이 없는 화면(오늘 시험 종료)은 문구만 위쪽 줄과 시간표 사이 가운데에 둔다. */
+/* 남은 시간이 없는 화면(오늘 시험 종료)은 안내 문구를 숨기고, 가운데 문구를 남은 시간 자리에 크게 둔다.
+   크기는 script.js의 fitCenter()가 남은 시간과 같은 방식으로 정한다. */
 .exam-screen.no-time .time-notice,
 .exam-screen.no-time .remaining-time {
   display: none;
 }
 
+.exam-screen.no-time .status-message {
+  grid-column: 2;
+  justify-self: center;
+}
+
 .schedule-panel {
   flex: 0 0 auto;
   min-width: 0;
-  padding: clamp(14px, min(1.8vw, 3vh), 28px);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgba(18, 23, 34, 0.86);
+  /* 위쪽 좌우 열과 같이 --top-side 여백까지 넓힌다. */
+  margin-inline: calc(var(--top-side) - var(--safe-side));
+  position: relative;
+  /* 박스 높이는 예전 그대로 고정한다(남은 시간 크기가 이 높이에 따라 정해지므로).
+     예전 = 위아래 (박스 여백 + 테두리 1px) + (칸 여백 + 칸 테두리 1px) + 글자(과목명 1.2em + 4px + 시각 0.6em × 1.17) */
+  --schedule-old-font: clamp(20px, min(2.035vw, 3.55vh), 33.6px);
+  --schedule-height: calc(
+    2 * (clamp(14px, min(1.8vw, 3vh), 28px) + 1px + clamp(8px, 1.4vh, 14px) + 1px)
+    + 1.902 * var(--schedule-old-font) + 4px
+  );
+  /* 위아래 안쪽 여백(현재 교시 강조 상자 여백 10px 포함). 남는 높이는 모두 글자 크기로 돌린다(.schedule-item).
+     줄이면 글자가 커지고, 늘리면 작아진다. */
+  --schedule-pad: 26.83px;
+  /* 교시 줄과 시간 줄 사이 간격. 늘린 만큼 --schedule-pad를 절반씩 줄여야 글자 크기가 그대로다. */
+  --schedule-line-gap: 12px;
+  /* 시간 글자를 교시 글자의 0.6배보다 더 키우는 양. 줄 높이가 이것의 1.17배 늘어나므로,
+     그 절반씩 --schedule-pad에서 뺐다(2px → 1.17px). */
+  --schedule-time-extra: 2px;
+  height: var(--schedule-height);
+  /* 좌우 안쪽 여백은 0이라 교시 칸이 박스를 정확히 3등분한다. */
+  padding: var(--schedule-pad) 0;
+  /* 글자가 폭 때문에 줄어든 경우(script.js의 fitScheduleText())에도 세로 가운데에 둔다. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* 3등분 지점에서 위아래로 파이는 세모: 깊이는 박스 높이에 대한 비율, 폭(한쪽)은 깊이에 대한 배수 */
+  --notch-depth: 0.22;
+  --notch-width: 0.8;
 }
 
-/* 교시 칸을 가로로 나열하고, 전체 폭을 같은 폭으로 나눈다. */
+/* 박스 모양과 현재 교시 칸. 글자 뒤에 깔린다. */
+.schedule-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.schedule-outline {
+  fill: rgba(18, 23, 34, 0.86);
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.schedule-current {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+/* 교시 칸 세 개가 박스 폭을 정확히 3등분한다. */
 .schedule-list {
+  position: relative;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: clamp(6px, 1.2vh, 12px);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* 글자 크기 기준을 과목명 크기로 두고, 왼쪽 여백 안에 '▶' 자리를 둔다.
-   그래서 과목명과 시각이 같은 세로선에 맞고, '▶'가 어느 줄로 옮겨가도 폭이 변하지 않는다. */
+/* 글자는 칸에서 세모 폭을 뺀 네모(현재 교시 강조 상자와 같은 기준)의 가운데에 맞춘다.
+   가운데 칸은 양쪽이 같으므로 그대로, 바깥쪽 칸은 3등분 지점 쪽 안쪽 여백에 세모 폭(--notch-half, script.js가 정함)을 더한다. */
 .schedule-item {
-  position: relative;
-  padding: clamp(8px, 1.4vh, 14px) 14px clamp(8px, 1.4vh, 14px) calc(14px + 1.05em);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  /* 교시와 과목 사이를 세 칸으로 늘린 만큼 4% 줄여, 시간표 폭(따라서 남은 시간 크기)을 그대로 유지한다. */
-  font-size: clamp(20px, min(2.035vw, 3.55vh), 33.6px);
+  padding: 0 14px;
+  /* 박스 안 글자 높이(과목명 1.2em + 줄 사이 간격 + 시각 (0.6em + 추가분) × 1.17)가 남는 높이를 꽉 채우는 크기 */
+  font-size: calc(
+    (var(--schedule-height) - 2 * var(--schedule-pad) - var(--schedule-line-gap) - 1.17 * var(--schedule-time-extra))
+    / 1.902
+  );
+  text-align: center;
 }
 
-.schedule-item.current {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+.schedule-item:first-child {
+  padding-right: calc(14px + var(--notch-half, 0px));
+}
+
+.schedule-item:last-child {
+  padding-left: calc(14px + var(--notch-half, 0px));
 }
 
 .schedule-name {
@@ -462,22 +542,12 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.schedule-marker {
-  position: absolute;
-  left: 14px;
-  /* 가운데 문구와 같은 옅은 파란색 */
-  color: #8ec9ff;
-  visibility: hidden;
-}
-
-.schedule-marker.visible {
-  visibility: visible;
-}
-
 .schedule-time {
   display: block;
-  margin-top: 4px;
+  margin-top: var(--schedule-line-gap);
   color: var(--muted);
-  font-size: 0.6em;
+  font-size: calc(0.6em + var(--schedule-time-extra));
   font-weight: 400;
+  /* 박스 높이 계산(.schedule-panel)에 쓰는 값. 예전 기본 줄 높이와 같다. */
+  line-height: 1.17;
 }
